@@ -1440,6 +1440,34 @@ mod tests {
             assert!(contrast(t.caption_close_text, t.caption_close) >= 4.5, "{kind:?}: close button glyph");
         }
     }
+    #[test]
+    fn the_house_theme_is_the_default_and_comes_from_craft_tokens() {
+        assert_eq!(ThemeKind::default(), ThemeKind::House);
+        assert_eq!(ThemeKind::ALL[0], ThemeKind::House);
+        for name in ["house", "Arthavan Dark", "arthavan"] {
+            assert_eq!(ThemeKind::from_name(name), Some(ThemeKind::House), "{name}");
+        }
+        assert_eq!(ThemeKind::House.id(), "house");
+        let t = Tokens::for_kind(ThemeKind::House);
+        assert_eq!(t.kind, ThemeKind::House);
+        assert!(t.dark() && !t.pro && !t.bevel);
+        // Values from the design system (tokens.json), not hand-picked.
+        assert_eq!(t.accent, Color32::from_rgb(0x8f, 0xb8, 0xd8), "steel-blue accent");
+        assert_eq!(t.canvas, Color32::from_rgb(0x07, 0x09, 0x0d), "neutral --bg canvas");
+        assert_eq!(t.chrome, Color32::from_rgb(0x0b, 0x0e, 0x14));
+        assert_eq!(t.card, Color32::from_rgb(0x0c, 0x0f, 0x15), "--panel flattened onto --bg");
+        assert_eq!(t.text, Color32::from_rgb(0xef, 0xfc, 0xff));
+        assert_eq!((t.radius_sm, t.radius, t.radius_lg), (10.0, 12.0, 14.0));
+        // Readable: body text 4.5:1 on every surface that carries it; dim and faint labels too.
+        for bg in [t.chrome, t.canvas, t.dock, t.card, t.field, t.hover, t.pressed] {
+            assert!(contrast(t.text, bg) >= 4.5, "text on {bg:?}");
+            assert!(contrast(t.text_dim, bg) >= 4.5, "dim text on {bg:?}");
+            assert!(contrast(t.text_faint, bg) >= 3.0, "faint text on {bg:?}");
+            assert!(contrast(t.accent_text, bg) >= 4.5, "accent text on {bg:?}");
+            assert!(contrast(t.icon, bg) >= 3.0, "icon on {bg:?}");
+        }
+        assert!(contrast(t.primary_text, t.primary_bg) >= 4.5, "primary button label");
+    }
 }
 
 /// Development feature: live design-token overrides.
@@ -1574,34 +1602,5 @@ pub mod live {
             assert_eq!(t.radius, 9.0);
             assert_eq!(unknown, vec!["nope".to_string()]);
         }
-    }
-
-    #[test]
-    fn the_house_theme_is_the_default_and_comes_from_craft_tokens() {
-        assert_eq!(ThemeKind::default(), ThemeKind::House);
-        assert_eq!(ThemeKind::ALL[0], ThemeKind::House);
-        for name in ["house", "Arthavan Dark", "arthavan"] {
-            assert_eq!(ThemeKind::from_name(name), Some(ThemeKind::House), "{name}");
-        }
-        assert_eq!(ThemeKind::House.id(), "house");
-        let t = Tokens::for_kind(ThemeKind::House);
-        assert_eq!(t.kind, ThemeKind::House);
-        assert!(t.dark() && !t.pro && !t.bevel);
-        // Values from the design system (tokens.json), not hand-picked.
-        assert_eq!(t.accent, Color32::from_rgb(0x8f, 0xb8, 0xd8), "steel-blue accent");
-        assert_eq!(t.canvas, Color32::from_rgb(0x07, 0x09, 0x0d), "neutral --bg canvas");
-        assert_eq!(t.chrome, Color32::from_rgb(0x0b, 0x0e, 0x14));
-        assert_eq!(t.card, Color32::from_rgb(0x0c, 0x0f, 0x15), "--panel flattened onto --bg");
-        assert_eq!(t.text, Color32::from_rgb(0xef, 0xfc, 0xff));
-        assert_eq!((t.radius_sm, t.radius, t.radius_lg), (10.0, 12.0, 14.0));
-        // Readable: body text 4.5:1 on every surface that carries it; dim and faint labels too.
-        for bg in [t.chrome, t.canvas, t.dock, t.card, t.field, t.hover, t.pressed] {
-            assert!(contrast(t.text, bg) >= 4.5, "text on {bg:?}");
-            assert!(contrast(t.text_dim, bg) >= 4.5, "dim text on {bg:?}");
-            assert!(contrast(t.text_faint, bg) >= 3.0, "faint text on {bg:?}");
-            assert!(contrast(t.accent_text, bg) >= 4.5, "accent text on {bg:?}");
-            assert!(contrast(t.icon, bg) >= 3.0, "icon on {bg:?}");
-        }
-        assert!(contrast(t.primary_text, t.primary_bg) >= 4.5, "primary button label");
     }
 }
