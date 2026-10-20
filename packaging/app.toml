@@ -4,6 +4,7 @@
 id = "photocraft"
 display_name = "PhotoCraft"
 bundle_id = "app.freedev.ainz.ks.PhotoCraft"
+publisher = "Arthavan Projects"
 description = "A native layered image editor: layers, masks, adjustment layers, type, brushes and PSD files"
 categories = ["Graphics", "2DGraphics", "RasterGraphics", "Photography"]
 icon_png = "assets/app-icon/hicolor/512x512/apps/app.freedev.ainz.ks.PhotoCraft.png"
