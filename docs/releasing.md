@@ -1,5 +1,17 @@
 # Releasing PhotoCraft
 
+> **This fork (685ks/photocraft) releases differently from upstream.** Run **Actions > Release >
+> Run workflow** with the version (the `[workspace.package] version` in `Cargo.toml`, e.g.
+> `0.11.1`). `.github/workflows/release.yml` calls the shared Arthavan Projects workflow
+> `685ks/craft-actions/.github/workflows/release-rust-app.yml@main` (package `photocraft`, binary
+> `photocraft`), which reads `packaging/app.toml`, builds Windows x64 (`.msi`, `-portable.zip`),
+> macOS universal (`.dmg`) and Linux x86_64/aarch64 (`.AppImage`, `.tar.gz`, `.deb`, `.rpm`), and
+> creates the release `v<version>` with `SHA256SUMS.txt`, an SBOM and build provenance (a draft
+> unless `publish` is ticked). Assets are named `photocraft-<version>-<os>-<arch>[-portable].<ext>`.
+> The Arthavan Projects launcher installs and updates PhotoCraft from these releases; the app has
+> no updater of its own. The upstream process below (the `release` branch, FreeBSD, web and
+> Windows ARM64 builds) is kept for reference and for the packaging scripts it describes.
+
 Every push to the `release` branch runs `.github/workflows/release.yml`. The workflow builds
 signed installers for macOS, Windows, Linux and the web, plus a FreeBSD tarball, then creates
 or updates a **draft** GitHub Release named `PhotoCraft v<version>`. Nobody sees a draft until a
