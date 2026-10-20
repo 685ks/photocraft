@@ -11,6 +11,19 @@ pub const ISSUES: &str = "https://github.com/685ks/photocraft/issues";
 pub const UPSTREAM: &str = "https://github.com/storytold/photocraft";
 /// The About box's provenance line. A legal notice, shown in English in every UI language.
 pub const FORK_NOTE: &str = "A fork of storytold/photocraft, not affiliated with or endorsed by ArtCraft.";
+/// Shown in About when the Arthavan Projects launcher started the app (`ARTHAVAN_LAUNCHER=1`).
+/// PhotoCraft has no updater of its own and makes no update or telemetry requests; the launcher
+/// installs and updates it from the 685ks/photocraft releases.
+pub const LAUNCHER_UPDATES_NOTE: &str = "Updates are managed by Arthavan Projects";
+
+/// Whether the Arthavan Projects launcher started this process.
+pub fn launcher_managed() -> bool {
+    launcher_managed_from(std::env::var("ARTHAVAN_LAUNCHER").ok().as_deref())
+}
+
+fn launcher_managed_from(value: Option<&str>) -> bool {
+    value.is_some_and(|v| v.trim() == "1")
+}
 
 /// Help-menu link commands: (id, url). Labels live in `menus::UI_COMMANDS`.
 pub const COMMANDS: &[(&str, &str)] = &[("help.github", GITHUB), ("help.reportIssue", ISSUES)];
@@ -125,4 +138,11 @@ mod rebrand_tests {
         assert!(COMMANDS.iter().all(|(id, _)| !id.contains("discord") && !id.contains("artcraft")));
     }
 
+    #[test]
+    fn launcher_flag_is_read_from_arthavan_launcher() {
+        assert!(launcher_managed_from(Some("1")));
+        assert!(!launcher_managed_from(None));
+        assert!(!launcher_managed_from(Some("0")));
+        assert!(!launcher_managed_from(Some("")));
+    }
 }

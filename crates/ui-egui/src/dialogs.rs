@@ -556,6 +556,9 @@ fn about_tab_body(app: &mut PhotocraftApp, ui: &mut egui::Ui, tab: &str) {
             ui.label(crate::i18n::fmt(tl!("Version {version}"), &[("version", &photocraft_engine::build_info::long_version())]));
             ui.add_space(12.0);
             ui.weak(crate::links::FORK_NOTE);
+            if crate::links::launcher_managed() {
+                ui.weak(crate::links::LAUNCHER_UPDATES_NOTE);
+            }
             ui.add_space(8.0);
             ui.vertical_centered(|ui| {
                 crate::links::link_row(app, ui);
