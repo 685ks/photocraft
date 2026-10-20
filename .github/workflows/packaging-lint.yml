@@ -19,8 +19,23 @@ concurrency:
 
 jobs:
   lint:
-    # Intentionally tracked at @main (not SHA-pinned) so org-wide CI improvements, security fixes, and build optimizations propagate without PR churn across all craftapp repos.
-    uses: storytold/craft-common-actions/.github/workflows/packaging-lint.yml@main
+    timeout-minutes: 10
+    name: Desktop metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - name: Install validators
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends desktop-file-utils libxml2-utils
+      - name: Validate the desktop entry and XML metadata
+        run: |
+          set -euo pipefail
+          desktop-file-validate packaging/linux/app.freedev.ainz.ks.PhotoCraft.desktop
+          xmllint --noout packaging/linux/app.freedev.ainz.ks.PhotoCraft.metainfo.xml.in \
+            packaging/linux/app.freedev.ainz.ks.PhotoCraft.mime.xml packaging/windows/photocraft.wxs \
+            packaging/macos/Info.plist.in
+          python3 -c 'import tomllib; d = tomllib.load(open("packaging/app.toml", "rb")); assert d["bundle_id"] == "app.freedev.ainz.ks.PhotoCraft", d'
 
   verified-appimage-inputs:
     timeout-minutes: 10
