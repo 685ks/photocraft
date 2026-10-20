@@ -11,6 +11,8 @@ rust-version = "1.95"
 
 [workspace.dependencies]
 craft-ui = { git = "https://github.com/storytold/craft-libs", rev = "5c874d51eeb3de70e735c8ce87a59a7dedd47675", features = ["serde"] }
+# The house design tokens (Arthavan Projects' craft-libs fork), behind the House theme (theme.rs).
+craft-tokens = { git = "https://github.com/685ks/craft-libs", tag = "v0.1.0" }
 # internal
 photocraft-geom = { path = "crates/geom" }
 photocraft-color = { path = "crates/color" }
