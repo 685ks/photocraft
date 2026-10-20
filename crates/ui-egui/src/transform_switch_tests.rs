@@ -11,8 +11,10 @@ use crate::PhotocraftApp;
 /// above the Background.
 fn app() -> Harness<'static, PhotocraftApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).with_max_steps(64).build_eframe(|cc| {
-        PhotocraftApp::setup_context(&cc.egui_ctx, Default::default());
+        // These tests drive the Pro layout's toolbar, not the default house theme's Studio layout.
+        PhotocraftApp::setup_context(&cc.egui_ctx, crate::theme::ThemeKind::ProMedium);
         let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), crate::Services::default());
+        app.ui.theme = crate::theme::ThemeKind::ProMedium;
         app.run("file.new", json!({"width": 400, "height": 300, "background": "white"})).unwrap();
         app.run("layer.new.layer", json!({})).unwrap();
         app.run("select.rect", json!({"x": 100, "y": 100, "width": 100, "height": 60})).unwrap();
@@ -59,8 +61,10 @@ fn picking_another_tool_in_the_toolbar_applies_the_transform() {
 /// place takes that step back.
 fn placed_app() -> Harness<'static, PhotocraftApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).with_max_steps(64).build_eframe(|cc| {
-        PhotocraftApp::setup_context(&cc.egui_ctx, Default::default());
+        // These tests drive the Pro layout's toolbar, not the default house theme's Studio layout.
+        PhotocraftApp::setup_context(&cc.egui_ctx, crate::theme::ThemeKind::ProMedium);
         let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), crate::Services::default());
+        app.ui.theme = crate::theme::ThemeKind::ProMedium;
         app.run("file.new", json!({"width": 400, "height": 300, "background": "white"})).unwrap();
         app.run("select.rect", json!({"x": 100, "y": 100, "width": 100, "height": 60})).unwrap();
         app.run("edit.fill", json!({"color": "#ff0000"})).unwrap();

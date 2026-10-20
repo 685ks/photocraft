@@ -31,10 +31,11 @@ fn layer_of(app: &PhotocraftApp, id: u64) -> Layer {
 /// Pro theme with only the Properties group expanded (it then fills the column).
 fn harness(session: photocraft_engine::Session, ppp: f32, dock_width: f32) -> Harness<'static, PhotocraftApp> {
     let mut h = Harness::builder().with_size(vec2(1440.0, 1600.0)).with_pixels_per_point(ppp).with_max_steps(64).build_eframe(move |cc| {
-        PhotocraftApp::setup_context(&cc.egui_ctx, Default::default());
+        PhotocraftApp::setup_context(&cc.egui_ctx, crate::theme::ThemeKind::ProMedium);
         PhotocraftApp::new(session, crate::Services::default())
     });
-    set(&mut h, json!({"dockWidth": dock_width, "dock": {"collapsed": ["color", "navigator", "history", "layers"]}}));
+    // The Pro layout, not the default house theme's Studio layout.
+    set(&mut h, json!({"theme": "proMedium", "dockWidth": dock_width, "dock": {"collapsed": ["color", "navigator", "history", "layers"]}}));
     h
 }
 
