@@ -23,6 +23,8 @@ The first request on every TCP connection must authenticate. No other method is 
 {"id": "auth", "method": "auth", "params": {"token": "<64 hexadecimal characters>"}}
 ```
 
+A failed first frame (wrong token, missing token, or any other method) gets `{"ok": false, "error": "authentication required"}` and the connection is closed. Tokens are compared in constant time. These guarantees are tested: `apps/photocraft/src/control_server.rs` sends every method the UI dispatcher answers (read from `crates/ui-egui/src/control.rs`) without the token and checks nothing is dispatched; it also checks the listener is bound to `127.0.0.1`. `crates/automation/src/security.rs` checks a created token file is `0600` and that every single-byte difference is refused.
+
 Authenticate once per connection. A later `auth` frame on the same connection gets `{"ok": false, "error": "already authenticated"}` and the connection keeps serving.
 
 After the successful authentication reply, each request is one JSON line:
