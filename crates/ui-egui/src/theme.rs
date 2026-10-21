@@ -119,7 +119,7 @@ impl ThemeKind {
     }
     /// Photoshop-grammar layout (tab strips, flat panels): the four Pro brightness levels.
     pub fn is_pro(self) -> bool {
-        matches!(self, ThemeKind::Pro | ThemeKind::ProMedium | ThemeKind::ProLightGray | ThemeKind::ProLight)
+        matches!(self, ThemeKind::House | ThemeKind::Pro | ThemeKind::ProMedium | ThemeKind::ProLightGray | ThemeKind::ProLight)
     }
     pub fn next(self) -> Self {
         let i = Self::ALL.iter().position(|k| *k == self).unwrap_or(0);
@@ -791,14 +791,16 @@ impl Tokens {
             primary_text: c(color::TEXT_ON_ACCENT),
             danger: c(color::STATUS_ERROR),
             warning: c(color::STATUS_WARN),
-            radius_sm: radius::LG,
-            radius: radius::XL,
-            radius_lg: radius::PANEL,
+            // PhotoCraft's Pro (Photoshop) layout, with the design system's small radii: the
+            // house colours, not a new panel arrangement.
+            radius_sm: radius::XS,
+            radius: radius::SM,
+            radius_lg: radius::MD,
             bevel: false,
-            pro: false,
-            round_chips: true,
-            tab_strip: Color32::TRANSPARENT,
-            row_selected: Color32::TRANSPARENT,
+            pro: true,
+            round_chips: false,
+            tab_strip: c(bg),
+            row_selected: c(color::ACCENT_BASE.with_alpha(0.22).over(card)),
             histogram_bg: c(bg),
             histogram_level: 225,
             caption_close: Color32::from_rgb(196, 43, 28),
@@ -1450,16 +1452,17 @@ mod tests {
         assert_eq!(ThemeKind::House.id(), "house");
         let t = Tokens::for_kind(ThemeKind::House);
         assert_eq!(t.kind, ThemeKind::House);
-        assert!(t.dark() && !t.pro && !t.bevel);
+        // The Pro layout, like Photoshop's, so every panel and test written for it holds.
+        assert!(t.dark() && t.pro && !t.round_chips && !t.bevel && ThemeKind::House.is_pro());
         // Values from the design system (tokens.json), not hand-picked.
         assert_eq!(t.accent, Color32::from_rgb(0x8f, 0xb8, 0xd8), "steel-blue accent");
         assert_eq!(t.canvas, Color32::from_rgb(0x07, 0x09, 0x0d), "neutral --bg canvas");
         assert_eq!(t.chrome, Color32::from_rgb(0x0b, 0x0e, 0x14));
         assert_eq!(t.card, Color32::from_rgb(0x0c, 0x0f, 0x15), "--panel flattened onto --bg");
         assert_eq!(t.text, Color32::from_rgb(0xef, 0xfc, 0xff));
-        assert_eq!((t.radius_sm, t.radius, t.radius_lg), (10.0, 12.0, 14.0));
+        assert_eq!((t.radius_sm, t.radius, t.radius_lg), (3.0, 5.0, 6.0));
         // Readable: body text 4.5:1 on every surface that carries it; dim and faint labels too.
-        for bg in [t.chrome, t.canvas, t.dock, t.card, t.field, t.hover, t.pressed] {
+        for bg in [t.chrome, t.canvas, t.dock, t.card, t.field, t.hover, t.pressed, t.tab_strip, t.row_selected] {
             assert!(contrast(t.text, bg) >= 4.5, "text on {bg:?}");
             assert!(contrast(t.text_dim, bg) >= 4.5, "dim text on {bg:?}");
             assert!(contrast(t.text_faint, bg) >= 3.0, "faint text on {bg:?}");

@@ -2750,7 +2750,7 @@ mod tests {
         let ctx = egui::Context::default();
         let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), crate::Services::default());
         sync_appearance(&mut app, &ctx);
-        assert_eq!(app.ui.theme, ThemeKind::House, "the house theme is the default; a dark non-Pro theme steps from Medium Gray");
+        assert_eq!(app.ui.theme, ThemeKind::House, "the house theme is the default; a dark theme outside the four steps steps from Medium Gray");
         let press = |app: &mut PhotocraftApp, id: &str| crate::menus::invoke(app, &ctx, id, json!({})).unwrap();
         for expected in [ThemeKind::ProLightGray, ThemeKind::ProLight, ThemeKind::ProLight] {
             press(&mut app, "view.lightenInterface");
@@ -2907,7 +2907,7 @@ mod tests {
         assert_eq!(ctx.options(|o| o.theme_preference), egui::ThemePreference::System);
         assert_palette(&ctx, ThemeKind::ProLight);
         appearance_frame(&mut app, &ctx, Some(egui::Theme::Dark));
-        assert_palette(&ctx, ThemeKind::ProMedium);
+        assert_palette(&ctx, ThemeKind::House);
         assert_eq!(app.session.prefs().interface.appearance_mode, AppearanceMode::Auto);
     }
 
