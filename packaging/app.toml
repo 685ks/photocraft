@@ -1,0 +1,13 @@
+# Packaging metadata read by the shared release workflow
+# (685ks/craft-actions/.github/workflows/release-rust-app.yml, called from
+# .github/workflows/release.yml). Asset names: photocraft-<version>-<os>-<arch>[-portable].<ext>.
+id = "photocraft"
+display_name = "PhotoCraft"
+bundle_id = "app.freedev.ainz.ks.PhotoCraft"
+publisher = "Arthavan Projects"
+description = "A native layered image editor: layers, masks, adjustment layers, type, brushes and PSD files"
+categories = ["Graphics", "2DGraphics", "RasterGraphics", "Photography"]
+icon_png = "assets/app-icon/hicolor/512x512/apps/app.freedev.ainz.ks.PhotoCraft.png"
+icon_icns = "assets/app-icon/photocraft.icns"
+icon_ico = "assets/app-icon/photocraft.ico"
+license = "MIT OR Apache-2.0"

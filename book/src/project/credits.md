@@ -1,6 +1,6 @@
 # Credits
 
-PhotoCraft is created and maintained by the ArtCraft team and PhotoCraft contributors. Project ownership, copyright, and licensing remain as stated in the repository's `README.md`, `NOTICE`, and license files. Every merged contribution is credited in the repository history and release notes.
+This PhotoCraft is a fork of storytold/photocraft, maintained by Arthavan Projects, built on the work of the upstream PhotoCraft contributors. It is not affiliated with or endorsed by ArtCraft. Project ownership, copyright, and licensing remain as stated in the repository's `README.md`, `NOTICE`, and license files. Every merged contribution is credited in the repository history and release notes.
 
 ## Documentation
 

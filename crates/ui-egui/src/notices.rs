@@ -307,7 +307,7 @@ mod tests {
     /// paste anyway, once while shown; a clipboard that simply holds no image stays a quiet no-op.
     #[test]
     fn unreadable_clipboard_paste_explains_the_sandbox() {
-        let command = "flatpak run --nosocket=wayland --socket=x11 ai.storyteller.photocraft";
+        let command = "flatpak run --nosocket=wayland --socket=x11 app.freedev.ainz.ks.PhotoCraft";
         let services = |unreadable: bool| Services {
             clipboard_get_image: Some(Box::new(|| None)),
             clipboard_unreadable: Some(Box::new(move || unreadable)),

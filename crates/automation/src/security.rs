@@ -524,6 +524,43 @@ mod tests {
         std::fs::remove_dir_all(&dir).ok();
     }
 
+    /// A token file the server creates is the user's alone (0600), whatever the umask.
+    #[cfg(unix)]
+    #[test]
+    fn a_created_token_file_is_owner_only() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = std::env::temp_dir().join(format!("photocraft-token-create-{}-{}", std::process::id(), generate_token().unwrap()));
+        let path = dir.join("nested").join("token.txt");
+        let token = server_token(None, Some(&path)).unwrap();
+        validate_token(&token).unwrap();
+        let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600, "created token file mode {mode:o}");
+        // Starting again reads the same token back instead of replacing it.
+        assert_eq!(server_token(None, Some(&path)).unwrap(), token);
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    /// The comparison visits every byte (no early exit) and any single-byte difference, at any
+    /// position, or any length difference is a mismatch.
+    #[test]
+    fn token_comparison_rejects_every_single_byte_difference() {
+        let token = generate_token().unwrap();
+        assert!(token_matches(&token, &token));
+        for i in 0..token.len() {
+            let mut bytes = token.clone().into_bytes();
+            bytes[i] = if bytes[i] == b'0' { b'1' } else { b'0' };
+            let other = String::from_utf8(bytes).unwrap();
+            assert!(!token_matches(&token, &other), "difference at {i} accepted");
+            assert!(!token_matches(&other, &token), "difference at {i} accepted");
+        }
+        assert!(!token_matches(&token, &token[..63]));
+        assert!(!token_matches(&token, &format!("{token}0")));
+        assert!(!token_matches(&token, ""));
+        assert!(!token_matches("", ""), "an empty expected token never matches");
+        // Non-hex bytes never fold onto hex digits.
+        assert!(!token_matches(&"a".repeat(64), &"\x01".repeat(64)));
+    }
+
     #[test]
     fn connection_limiter_releases_capacity() {
         let limiter = ConnectionLimiter::new(1);

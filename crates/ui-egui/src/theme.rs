@@ -1,5 +1,8 @@
 //! Design system: themes, colour tokens, radii, typography.
 //!
+//! - **Arthavan Dark** (the house theme, default): the Arthavan Projects design system from
+//!   `craft-tokens` (steel-blue accent on near-black, Inter), with the Studio layout. The canvas
+//!   surround stays the neutral `--bg`; the accent is only in the chrome.
 //! - **Studio**: near-black surfaces, rounded cards, Inter + JetBrains Mono, soft violet
 //!   accent. Modelled on the look of modern pro editors (such as Photoshop 2025).
 //! - **Studio Light**: the same system on light surfaces.
@@ -25,10 +28,12 @@ use std::sync::Arc;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ThemeKind {
+    /// The house theme (default): the Arthavan Projects design system, built from `craft-tokens`.
+    #[default]
+    House,
     /// Photoshop-style Spectrum dark: flat charcoal panels, tab strips, blue accents (darkest brightness).
     Pro,
-    /// Photoshop's default (second) interface brightness: #535353 panels, #282828 canvas (default).
-    #[default]
+    /// Photoshop's default (second) interface brightness: #535353 panels, #282828 canvas.
     ProMedium,
     /// Photoshop's third interface brightness: #B8B8B8 panels (#2661).
     ProLightGray,
@@ -55,7 +60,8 @@ pub enum ThemeKind {
 }
 
 impl ThemeKind {
-    pub const ALL: [ThemeKind; 14] = [
+    pub const ALL: [ThemeKind; 15] = [
+        ThemeKind::House,
         ThemeKind::Pro,
         ThemeKind::ProMedium,
         ThemeKind::ProLightGray,
@@ -73,6 +79,7 @@ impl ThemeKind {
     ];
     pub fn label(self) -> &'static str {
         match self {
+            ThemeKind::House => "Arthavan Dark",
             ThemeKind::Pro => "Pro (Dark)",
             ThemeKind::ProMedium => "Pro (Medium Gray)",
             ThemeKind::ProLightGray => "Pro (Light Gray)",
@@ -93,6 +100,7 @@ impl ThemeKind {
     /// `window.theme.<id>`.
     pub fn id(self) -> &'static str {
         match self {
+            ThemeKind::House => "house",
             ThemeKind::Pro => "pro",
             ThemeKind::ProMedium => "proMedium",
             ThemeKind::ProLightGray => "proLightGray",
@@ -111,7 +119,7 @@ impl ThemeKind {
     }
     /// Photoshop-grammar layout (tab strips, flat panels): the four Pro brightness levels.
     pub fn is_pro(self) -> bool {
-        matches!(self, ThemeKind::Pro | ThemeKind::ProMedium | ThemeKind::ProLightGray | ThemeKind::ProLight)
+        matches!(self, ThemeKind::House | ThemeKind::Pro | ThemeKind::ProMedium | ThemeKind::ProLightGray | ThemeKind::ProLight)
     }
     pub fn next(self) -> Self {
         let i = Self::ALL.iter().position(|k| *k == self).unwrap_or(0);
@@ -119,6 +127,7 @@ impl ThemeKind {
     }
     pub fn from_name(s: &str) -> Option<Self> {
         match s.to_ascii_lowercase().replace([' ', '_', '-', '(', ')'], "").as_str() {
+            "house" | "arthavan" | "arthavandark" => Some(ThemeKind::House),
             "pro" | "prodark" | "photoshop" | "dark" => Some(ThemeKind::Pro),
             "promedium" | "promediumgray" | "medium" | "mediumgray" => Some(ThemeKind::ProMedium),
             "prolightgray" | "lightgray" | "mediumlight" => Some(ThemeKind::ProLightGray),
@@ -204,6 +213,7 @@ impl Tokens {
 
     pub fn for_kind(kind: ThemeKind) -> Self {
         match kind {
+            ThemeKind::House => Tokens::house(),
             // Sampled from Photoshop 2026's default brightness (raw display values).
             ThemeKind::ProMedium => Tokens {
                 kind,
@@ -745,6 +755,60 @@ impl Tokens {
         }
     }
 
+    /// The house theme, filled from `craft-tokens` (the mapping is ADOPTION.md section 2 of the
+    /// design system). Translucent web surfaces are flattened onto the surface below them, since
+    /// egui cannot blur what is behind a panel.
+    fn house() -> Self {
+        use craft_tokens::{Rgba, color, radius, shadow};
+        let c = |x: Rgba| Color32::from_rgba_unmultiplied(x.r, x.g, x.b, x.a);
+        let bg = color::BG_BASE;
+        let card = color::SURFACE_PANEL.over(bg);
+        let white = |alpha: f32| Rgba::rgb(255, 255, 255).with_alpha(alpha).over(card);
+        Tokens {
+            kind: ThemeKind::House,
+            chrome: c(color::BG_SHEET),
+            // Neutral surround: colour judgement needs it untinted.
+            canvas: c(bg),
+            canvas_dot: c(bg),
+            dock: c(color::BG_SKY_BOTTOM),
+            card: c(card),
+            card_border: c(color::BORDER_LINE.over(card)),
+            field: c(color::SURFACE_FILL_3.over(card)),
+            field_border: c(color::BORDER_LINE.over(card)),
+            hover: c(color::SURFACE_FILL_FOCUS.over(card)),
+            pressed: c(white(0.09)),
+            text: c(color::TEXT_INK),
+            text_dim: c(color::TEXT_MUTED),
+            text_faint: c(color::TEXT_FAINT),
+            icon: c(color::ACCENT_HIGH),
+            accent: c(color::ACCENT_BASE),
+            accent_soft: c(color::ACCENT_BASE.with_alpha(0.14)),
+            accent_border: c(color::ACCENT_BASE.with_alpha(0.45)),
+            accent_text: c(color::ACCENT_BASE),
+            separator: c(color::BORDER_LINE_SOFT.over(card)),
+            shadow: c(shadow::PANEL.color),
+            primary_bg: c(color::ACCENT_HIGH),
+            primary_text: c(color::TEXT_ON_ACCENT),
+            danger: c(color::STATUS_ERROR),
+            warning: c(color::STATUS_WARN),
+            // PhotoCraft's Pro (Photoshop) layout, with the design system's small radii: the
+            // house colours, not a new panel arrangement.
+            radius_sm: radius::XS,
+            radius: radius::SM,
+            radius_lg: radius::MD,
+            bevel: false,
+            pro: true,
+            round_chips: false,
+            tab_strip: c(bg),
+            row_selected: c(color::ACCENT_BASE.with_alpha(0.22).over(card)),
+            histogram_bg: c(bg),
+            histogram_level: 225,
+            caption_close: Color32::from_rgb(196, 43, 28),
+            caption_close_text: Color32::WHITE,
+            scrim: Color32::from_black_alpha(140),
+        }
+    }
+
     /// Tokens for the active theme (stored in egui's context data by [`apply`]).
     pub fn get(ctx: &egui::Context) -> Tokens {
         ctx.data(|d| d.get_temp::<Tokens>(egui::Id::new("photocraft-theme"))).unwrap_or_else(|| Tokens::for_kind(ThemeKind::Studio))
@@ -811,7 +875,8 @@ impl Tokens {
     pub fn dark(&self) -> bool {
         matches!(
             self.kind,
-            ThemeKind::Studio
+            ThemeKind::House
+                | ThemeKind::Studio
                 | ThemeKind::Pro
                 | ThemeKind::ProMedium
                 | ThemeKind::SolarizedDark
@@ -1376,6 +1441,35 @@ mod tests {
             }
             assert!(contrast(t.caption_close_text, t.caption_close) >= 4.5, "{kind:?}: close button glyph");
         }
+    }
+    #[test]
+    fn the_house_theme_is_the_default_and_comes_from_craft_tokens() {
+        assert_eq!(ThemeKind::default(), ThemeKind::House);
+        assert_eq!(ThemeKind::ALL[0], ThemeKind::House);
+        for name in ["house", "Arthavan Dark", "arthavan"] {
+            assert_eq!(ThemeKind::from_name(name), Some(ThemeKind::House), "{name}");
+        }
+        assert_eq!(ThemeKind::House.id(), "house");
+        let t = Tokens::for_kind(ThemeKind::House);
+        assert_eq!(t.kind, ThemeKind::House);
+        // The Pro layout, like Photoshop's, so every panel and test written for it holds.
+        assert!(t.dark() && t.pro && !t.round_chips && !t.bevel && ThemeKind::House.is_pro());
+        // Values from the design system (tokens.json), not hand-picked.
+        assert_eq!(t.accent, Color32::from_rgb(0x8f, 0xb8, 0xd8), "steel-blue accent");
+        assert_eq!(t.canvas, Color32::from_rgb(0x07, 0x09, 0x0d), "neutral --bg canvas");
+        assert_eq!(t.chrome, Color32::from_rgb(0x0b, 0x0e, 0x14));
+        assert_eq!(t.card, Color32::from_rgb(0x0c, 0x0f, 0x15), "--panel flattened onto --bg");
+        assert_eq!(t.text, Color32::from_rgb(0xef, 0xfc, 0xff));
+        assert_eq!((t.radius_sm, t.radius, t.radius_lg), (3.0, 5.0, 6.0));
+        // Readable: body text 4.5:1 on every surface that carries it; dim and faint labels too.
+        for bg in [t.chrome, t.canvas, t.dock, t.card, t.field, t.hover, t.pressed, t.tab_strip, t.row_selected] {
+            assert!(contrast(t.text, bg) >= 4.5, "text on {bg:?}");
+            assert!(contrast(t.text_dim, bg) >= 4.5, "dim text on {bg:?}");
+            assert!(contrast(t.text_faint, bg) >= 3.0, "faint text on {bg:?}");
+            assert!(contrast(t.accent_text, bg) >= 4.5, "accent text on {bg:?}");
+            assert!(contrast(t.icon, bg) >= 3.0, "icon on {bg:?}");
+        }
+        assert!(contrast(t.primary_text, t.primary_bg) >= 4.5, "primary button label");
     }
 }
 

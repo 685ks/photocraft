@@ -112,7 +112,7 @@ pub(crate) fn invoke_unguarded(app: &mut PhotocraftApp, ctx: &egui::Context, id:
     if let Some(result) = crate::panel_docking::command(app, id, &params) {
         return result;
     }
-    // Help › Discord, website, GitHub, Report an Issue.
+    // Help › GitHub, Report an Issue.
     if let Some(url) = crate::links::url_for(id) {
         return Ok(crate::links::open(app, ctx, url));
     }
@@ -313,7 +313,8 @@ pub(crate) fn invoke_unguarded(app: &mut PhotocraftApp, ctx: &egui::Context, id:
             crate::prefs_ui::sync_appearance(app, ctx);
             Ok(Value::Null)
         }
-        "window.theme.pro"
+        "window.theme.house"
+        | "window.theme.pro"
         | "window.theme.proMedium"
         | "window.theme.proLightGray"
         | "window.theme.proLight"
@@ -1910,7 +1911,7 @@ mod tests {
     }
 
     /// #5996: a real key press comes as a key and its text. A letter typed into Help › Search is
-    /// text for the field, not a mnemonic: "S" ran System Info and "A" the ArtCraft website.
+    /// text for the field, not a mnemonic: "S" ran System Info and "A" a website link.
     #[test]
     fn help_search_letters_are_not_mnemonics() {
         use egui::{Event, Key, Modifiers, PointerButton};

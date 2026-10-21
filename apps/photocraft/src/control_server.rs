@@ -16,9 +16,15 @@ use photocraft_ui_egui::ControlRequest;
 use photocraft_ui_egui::control::REPLY_DEADLINE;
 use serde_json::{Value, json};
 
+/// Bind the control listener. Always the IPv4 loopback address, never a wildcard or a LAN address:
+/// the control channel must not be reachable from another machine.
+fn bind_loopback(port: u16) -> std::io::Result<TcpListener> {
+    TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, port))
+}
+
 pub fn start(port: u16, token: String, ctx: egui::Context) -> Receiver<ControlRequest> {
     let (tx, rx) = channel::<ControlRequest>();
-    let listener = match TcpListener::bind(("127.0.0.1", port)) {
+    let listener = match bind_loopback(port) {
         Ok(l) => l,
         Err(e) => {
             eprintln!("photocraft: control server failed to bind 127.0.0.1:{port}: {e}");
@@ -285,5 +291,102 @@ mod tests {
         drop(stream);
         handler.join().unwrap();
         server.join().unwrap();
+    }
+
+    const TOKEN: &str = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+
+    /// Every method the UI dispatcher answers, read from its `match` arms in
+    /// `crates/ui-egui/src/control.rs`, so a new route is covered by the auth tests below.
+    fn every_route() -> Vec<String> {
+        let source = include_str!("../../../crates/ui-egui/src/control.rs");
+        let mut routes = std::collections::BTreeSet::new();
+        for line in source.lines() {
+            let Some(arm) = line.strip_prefix("        \"") else { continue };
+            let Some((patterns, _)) = arm.split_once(" =>") else { continue };
+            let patterns = patterns.split(" if ").next().unwrap_or("");
+            for pattern in format!("\"{patterns}").split('|') {
+                let name = pattern.trim().trim_matches('"');
+                if name.contains('.') && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '.') {
+                    routes.insert(name.to_string());
+                }
+            }
+        }
+        routes.into_iter().collect()
+    }
+
+    #[test]
+    fn the_route_list_covers_the_documented_methods() {
+        let routes = every_route();
+        for documented in ["engine.execute", "ui.menu.invoke", "ui.screenshot", "ui.set", "ui.click", "app.open", "app.save", "app.quit"] {
+            assert!(routes.iter().any(|r| r == documented), "{documented} not found in {routes:?}");
+        }
+    }
+
+    /// One unauthenticated connection per route: the first frame is the route itself, with or
+    /// without a wrong token. The server answers "authentication required", closes the
+    /// connection, and dispatches nothing.
+    #[test]
+    fn every_route_requires_the_token() {
+        let wrong = "f".repeat(64);
+        for route in every_route() {
+            for params in [json!({}), json!({"token": TOKEN}), json!({"token": wrong})] {
+                let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+                let addr = listener.local_addr().unwrap();
+                let (tx, rx) = channel::<ControlRequest>();
+                let server = std::thread::spawn(move || {
+                    let (stream, _) = listener.accept().unwrap();
+                    serve(stream, TOKEN, tx, egui::Context::default());
+                });
+                let mut stream = TcpStream::connect(addr).unwrap();
+                stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+                let mut reader = BufReader::new(stream.try_clone().unwrap());
+                writeln!(stream, "{}", json!({"id": 1, "method": route, "params": params})).unwrap();
+                let mut line = String::new();
+                reader.read_line(&mut line).unwrap();
+                let reply: Value = serde_json::from_str(&line).unwrap();
+                assert_eq!(reply["ok"], false, "{route}");
+                assert_eq!(reply["error"], "authentication required", "{route}");
+                // The server hung up: a second frame gets no answer.
+                let _ = writeln!(stream, "{}", json!({"id": 2, "method": route}));
+                line.clear();
+                assert_eq!(reader.read_line(&mut line).unwrap_or(0), 0, "{route}: connection stays open after a failed auth");
+                server.join().unwrap();
+                assert!(rx.try_recv().is_err(), "{route} was dispatched without authentication");
+            }
+        }
+    }
+
+    #[test]
+    fn a_wrong_token_is_refused_and_the_connection_closed() {
+        for wrong in ["f".repeat(64), format!("{}0", &TOKEN[..63]), format!("1{}", &TOKEN[1..]), TOKEN[..63].to_string(), format!("{TOKEN}0"), String::new()] {
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            let addr = listener.local_addr().unwrap();
+            let (tx, rx) = channel::<ControlRequest>();
+            let server = std::thread::spawn(move || {
+                let (stream, _) = listener.accept().unwrap();
+                serve(stream, TOKEN, tx, egui::Context::default());
+            });
+            let mut stream = TcpStream::connect(addr).unwrap();
+            stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+            let mut reader = BufReader::new(stream.try_clone().unwrap());
+            writeln!(stream, "{}", json!({"id": 1, "method": "auth", "params": {"token": wrong}})).unwrap();
+            let mut line = String::new();
+            reader.read_line(&mut line).unwrap();
+            let reply: Value = serde_json::from_str(&line).unwrap();
+            assert_eq!(reply["error"], "authentication required", "{wrong:?}");
+            let _ = writeln!(stream, "{}", json!({"id": 2, "method": "ui.inspect"}));
+            line.clear();
+            assert_eq!(reader.read_line(&mut line).unwrap_or(0), 0, "{wrong:?}");
+            server.join().unwrap();
+            assert!(rx.try_recv().is_err(), "{wrong:?}: dispatched");
+        }
+    }
+
+    #[test]
+    fn the_listener_is_bound_to_loopback_only() {
+        let listener = bind_loopback(0).unwrap();
+        let local = listener.local_addr().unwrap();
+        assert!(local.ip().is_loopback(), "{local}");
+        assert_eq!(local.ip(), std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST));
     }
 }

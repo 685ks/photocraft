@@ -1,5 +1,17 @@
 # Releasing PhotoCraft
 
+> **This fork (685ks/photocraft) releases differently from upstream.** Run **Actions > Release >
+> Run workflow** with the version (the `[workspace.package] version` in `Cargo.toml`, e.g.
+> `0.11.1`). `.github/workflows/release.yml` calls the shared Arthavan Projects workflow
+> `685ks/craft-actions/.github/workflows/release-rust-app.yml@main` (package `photocraft`, binary
+> `photocraft`), which reads `packaging/app.toml`, builds Windows x64 (`.msi`, `-portable.zip`),
+> macOS universal (`.dmg`) and Linux x86_64/aarch64 (`.AppImage`, `.tar.gz`, `.deb`, `.rpm`), and
+> creates the release `v<version>` with `SHA256SUMS.txt`, an SBOM and build provenance (a draft
+> unless `publish` is ticked). Assets are named `photocraft-<version>-<os>-<arch>[-portable].<ext>`.
+> The Arthavan Projects launcher installs and updates PhotoCraft from these releases; the app has
+> no updater of its own. The upstream process below (the `release` branch, FreeBSD, web and
+> Windows ARM64 builds) is kept for reference and for the packaging scripts it describes.
+
 Every push to the `release` branch runs `.github/workflows/release.yml`. The workflow builds
 signed installers for macOS, Windows, Linux and the web, plus a FreeBSD tarball, then creates
 or updates a **draft** GitHub Release named `PhotoCraft v<version>`. Nobody sees a draft until a
@@ -7,7 +19,7 @@ maintainer publishes it.
 
 This is PhotoCraft's implementation of the shared
 [release playbook](release-playbook.md). User-facing names say **PhotoCraft**. Files, binaries
-and ids stay lowercase (`photocraft-<version>-<platform>-<arch>.<ext>`, `ai.storyteller.photocraft`).
+and ids stay lowercase (`photocraft-<version>-<platform>-<arch>.<ext>`, `app.freedev.ainz.ks.PhotoCraft`).
 
 ## Cutting a release
 
@@ -75,7 +87,7 @@ in `ci.yml`. Rules: `../craftrules/standards/fonts.md`; build option: `docs/deve
 `packaging/macos/package.sh` builds `aarch64-apple-darwin` and `x86_64-apple-darwin` with
 `MACOSX_DEPLOYMENT_TARGET=11.0`, joins them with `lipo`, and assembles `PhotoCraft.app`:
 
-- `Info.plist` is generated from `Info.plist.in`. The bundle id is `ai.storyteller.photocraft`.
+- `Info.plist` is generated from `Info.plist.in`. The bundle id is `app.freedev.ainz.ks.PhotoCraft`.
   The plist sets `LSMinimumSystemVersion` 11.0, `NSHighResolutionCapable`, and document types:
   `.pcraft` (Owner), plus PSD/PSB and the image formats PhotoCraft reads (Alternate, so it never
   takes over Preview's defaults). The icon is `assets/app-icon/photocraft.icns`.
@@ -90,7 +102,7 @@ in `ci.yml`. Rules: `../craftrules/standards/fonts.md`; build option: `docs/deve
   [`packaging/macos/dmg/`](../packaging/macos/dmg/README.md), and its volume is named `PhotoCraft`
   without the version, which the window's background needs; the DMG file name keeps the version.
 - **CLI:** the universal `photocraft-cli` is signed with the same Developer ID, the hardened
-  runtime and a secure timestamp (identifier `ai.storyteller.photocraft-cli`), zipped, and the zip
+  runtime and a secure timestamp (identifier `app.freedev.ainz.ks.PhotoCraft-cli`), zipped, and the zip
   is sent to `notarytool`. Only `.app`, `.dmg` and `.pkg` can hold a stapled ticket, not a bare
   Mach-O, so Gatekeeper looks the CLI's ticket up online the first time a downloaded
   (quarantined) copy runs. Offline, that first run can be refused until the Mac is online again.
@@ -174,7 +186,7 @@ Locally on Windows: `dotnet tool install -g wix --version 5.0.2`,
 ### Linux
 
 `packaging/linux/package.sh` stages one FHS tree and makes every format from it. The tree
-holds both binaries, `ai.storyteller.photocraft.desktop`, hicolor icons from 16 px to 512 px
+holds both binaries, `app.freedev.ainz.ks.PhotoCraft.desktop`, hicolor icons from 16 px to 512 px
 plus a scalable SVG, AppStream metainfo, and a shared-mime-info file for `.pcraft`, `.psb` and
 `.qoi`.
 
@@ -197,12 +209,12 @@ Why these formats:
   Wayland the dock icon comes from the compositor resolving the window's app_id against an
   *installed* `.desktop` file, which an AppImage alone never provides — without this every
   AppImage run shows the generic Wayland logo (#593). Best effort: it installs
-  `~/.local/share/applications/ai.storyteller.photocraft.desktop` with `Exec` rewritten to
+  `~/.local/share/applications/app.freedev.ainz.ks.PhotoCraft.desktop` with `Exec` rewritten to
   the AppImage's path (`TryExec` dropped, the binary isn't on the host PATH) and the
   hicolor icons beside it, rewriting only when the content changed, and any failure leaves
   the launch untouched. `PHOTOCRAFT_NO_DESKTOP_INTEGRATION=1` opts out; to uninstall, `rm
-  ~/.local/share/applications/ai.storyteller.photocraft.desktop` and `find
-  ~/.local/share/icons/hicolor -name 'ai.storyteller.photocraft*' -delete`. The script is
+  ~/.local/share/applications/app.freedev.ainz.ks.PhotoCraft.desktop` and `find
+  ~/.local/share/icons/hicolor -name 'app.freedev.ainz.ks.PhotoCraft*' -delete`. The script is
   covered by `packaging/linux/apprun-test.sh` in the packaging-lint workflow.
 - **.deb** covers Debian, Ubuntu, Mint, Pop!_OS and elementary. **.rpm** covers Fedora, RHEL
   and its clones, and openSUSE. Both integrate with the menu, MIME and icon caches (the
@@ -214,7 +226,7 @@ Why these formats:
 - **Flatpak bundle** (`.flatpak`) is a single file that installs into Flatpak, sandboxed and
   updatable by installing a newer bundle, for people who prefer Flatpak to AppImage.
   `packaging/linux/flatpak-bundle.sh` repackages the job's `.tar.gz` with
-  `packaging/linux/flatpak/ai.storyteller.photocraft.bundle.yml` on the freedesktop 26.08
+  `packaging/linux/flatpak/app.freedev.ainz.ks.PhotoCraft.bundle.yml` on the freedesktop 26.08
   runtime. It does no Rust build and needs no network inside `flatpak-builder`, so the bundle
   holds the same binaries as the other formats. A separate `flatpak` job per architecture
   (`ubuntu-24.04` and `ubuntu-24.04-arm`, for flatpak-builder 1.4) downloads the Linux job's
@@ -224,17 +236,17 @@ Why these formats:
 
   ```sh
   flatpak install --user photocraft-<v>-linux-x86_64.flatpak   # pulls org.freedesktop.Platform//26.08 from Flathub if missing
-  flatpak run ai.storyteller.photocraft
+  flatpak run app.freedev.ainz.ks.PhotoCraft
   ```
 
   Sandbox permissions (justified in the manifest): Wayland with X11 fallback, IPC (X11
   shared memory), `dri` for the GPU, and read/write access to Pictures and Documents. Every
   other file goes through the file-chooser and document portals. There's no network, so the
   `--control` server is only reachable from inside the sandbox until the user runs
-  `flatpak override --user --share=network ai.storyteller.photocraft`. Host fonts are read from
+  `flatpak override --user --share=network app.freedev.ainz.ks.PhotoCraft`. Host fonts are read from
   `/run/host/fonts` and `/run/host/user-fonts`. Locally (on Linux, with `flatpak` and
   `flatpak-builder`): `packaging/linux/package.sh --formats tar && packaging/linux/flatpak-bundle.sh`.
-- **Flathub**: `packaging/linux/flatpak/ai.storyteller.photocraft.yml` builds from source and
+- **Flathub**: `packaging/linux/flatpak/app.freedev.ainz.ks.PhotoCraft.yml` builds from source and
   is ready for a Flathub submission (it keeps the same runtime and `finish-args` as the bundle
   manifest, which packaging-lint checks). CI doesn't build it. A real build needs vendored crate
   sources (`cargo-sources.json` from `flatpak-cargo-generator.py`) and adds 20+ minutes per
@@ -326,7 +338,7 @@ The keychain is deleted at the end of the job.
 
 ## Icons
 
-`assets/app-icon/photocraft.svg` is the canonical icon: the owner's ArtCraft drawing of a
+`assets/app-icon/photocraft.svg` is the canonical icon: the upstream owner's drawing of a
 nine-tailed kitsune, vectorised (MIT OR Apache-2.0, see `LICENSE.txt` there; palette and
 geometry in `README.md`). `packaging/icons.sh` regenerates the 1024 px PNG, the `.icns`, the `.ico` (packed by
 `cargo xtask ico`) and the hicolor PNGs from it. It needs `resvg`, plus `iconutil` on macOS.

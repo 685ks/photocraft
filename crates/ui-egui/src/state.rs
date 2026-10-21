@@ -1410,7 +1410,7 @@ impl Default for UiState {
             views: Vec::new(),
             dialogs: Vec::new(),
             windows: Vec::new(),
-            theme: crate::theme::ThemeKind::ProMedium,
+            theme: crate::theme::ThemeKind::House,
             workspace: "Essentials".into(),
             palette_open: false,
             dock_tabs: DockTabs::default(),

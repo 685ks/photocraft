@@ -18,8 +18,8 @@ It is a native app written in Rust that draws the canvas on your graphics card, 
 
 ## Part of the Craft App Suite
 
-PhotoCraft is one of the Crafting Apps from the ArtCraft team, next to VectorCraft, FilmCraft and the other Craft apps. You can install and update them from [ArtCraft Launcher](https://getartcraft.com/docs/craft-launcher).
+PhotoCraft is one of the Craft apps that Arthavan Projects maintains as forks of the open-source storytold apps. You can install and update them from the Arthavan Projects launcher.
 
 ## Get help
 
-Ask in [Discord](https://discord.gg/artcraft) or open an issue in the [issue tracker](https://github.com/storytold/photocraft/issues). In PhotoCraft, **Help › Report an Issue…** opens the same issue tracker.
+Open an issue in the [issue tracker](https://github.com/685ks/photocraft/issues). In PhotoCraft, **Help › Report an Issue…** opens the same issue tracker.

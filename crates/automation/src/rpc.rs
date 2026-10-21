@@ -309,7 +309,14 @@ fn serve_tcp_connection(h: &Mutex<Headless>, stream: std::net::TcpStream, token:
 /// Serve authenticated JSON lines on a loopback TCP address with one shared session.
 /// Refuses non-loopback addresses and caps active connections and request bytes.
 pub fn serve_tcp(addr: &str, h: Arc<Mutex<Headless>>, token: String, ready: impl FnOnce(std::net::SocketAddr)) -> Result<(), AutomationError> {
-    let listener = TcpListener::bind(addr).map_err(|e| AutomationError::Io(format!("bind {addr}: {e}")))?;
+    // Check before binding: even a moment on a wildcard or LAN address would let another machine
+    // queue a connection.
+    use std::net::ToSocketAddrs;
+    let candidates: Vec<std::net::SocketAddr> = addr.to_socket_addrs().map_err(|e| bad(format!("{addr}: {e}")))?.collect();
+    if candidates.is_empty() || candidates.iter().any(|a| !a.ip().is_loopback()) {
+        return Err(bad(format!("{addr} is not a loopback address")));
+    }
+    let listener = TcpListener::bind(&candidates[..]).map_err(|e| AutomationError::Io(format!("bind {addr}: {e}")))?;
     let local = listener.local_addr().map_err(|e| AutomationError::Io(e.to_string()))?;
     if !local.ip().is_loopback() {
         return Err(bad(format!("{addr} is not a loopback address")));
@@ -793,6 +800,18 @@ mod tests {
         assert!(h.session.documents().is_empty(), "later edit must not execute after the quota is exhausted");
         assert!(crate::budgets::json_bytes(&result).is_ok());
         assert!(h.handle("methods", Value::Null).is_ok());
+    }
+
+    /// A wildcard or LAN address is refused before anything is bound.
+    #[test]
+    fn tcp_refuses_non_loopback_addresses_before_binding() {
+        for addr in ["0.0.0.0:0", "[::]:0", "not an address"] {
+            let h = Arc::new(Mutex::new(Headless::new()));
+            let mut ready = false;
+            let result = serve_tcp(addr, h, "0".repeat(64), |_| ready = true);
+            assert!(result.is_err(), "{addr} accepted");
+            assert!(!ready, "{addr}: listener reported ready");
+        }
     }
 
     #[test]

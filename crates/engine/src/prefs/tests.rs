@@ -70,13 +70,16 @@ fn home_recent_files_preference_defaults_on_persists_and_resets() {
 #[test]
 fn appearance_defaults_and_legacy_theme_migrate() {
     let p = Preferences::default();
-    // New users keep Photoshop's default; following the system is opt-in.
+    // New users get the house theme (dark); following the system is opt-in.
     assert_eq!(p.interface.appearance_mode, AppearanceMode::Dark);
-    assert_eq!(p.interface.dark_theme, DarkTheme::ProMedium);
+    assert_eq!(p.interface.theme, Theme::House);
+    assert_eq!(p.interface.dark_theme, DarkTheme::House);
     assert_eq!(p.interface.light_theme, LightTheme::ProLight);
-    for (theme, mode, dark, light) in
-        [("pro", AppearanceMode::Dark, DarkTheme::Pro, LightTheme::ProLight), ("classic", AppearanceMode::Light, DarkTheme::ProMedium, LightTheme::Classic)]
-    {
+    for (theme, mode, dark, light) in [
+        ("pro", AppearanceMode::Dark, DarkTheme::Pro, LightTheme::ProLight),
+        ("classic", AppearanceMode::Light, DarkTheme::House, LightTheme::Classic),
+        ("house", AppearanceMode::Dark, DarkTheme::House, LightTheme::ProLight),
+    ] {
         let mut s = Session::new();
         s.load_prefs_json(&json!({"interface": {"theme": theme}}).to_string()).unwrap();
         assert_eq!(s.prefs().interface.appearance_mode, mode);
