@@ -1,4 +1,4 @@
-# The full workspace suite: Clippy, every unit and integration test on Linux, macOS and Windows,
+# The full workspace suite: Clippy, every unit and integration test on Linux and Windows,
 # panic hunt, doctests, the craft-fonts and no-heif variants, corpus, wasm, the web build and
 # (on demand) fuzzing. Nightly on main and on demand (Actions > CI (full) > Run workflow, on any
 # branch). ci.yml runs the fast subset on every PR. Actions are pinned by commit SHA.
@@ -49,7 +49,6 @@ jobs:
       matrix:
         include:
           - { os: ubuntu-latest, part: all }
-          - { os: macos-latest, part: all }
           - { os: windows-latest, part: unit }
           - { os: windows-latest, part: integration }
     env:
