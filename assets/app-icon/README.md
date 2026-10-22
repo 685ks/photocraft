@@ -1,47 +1,29 @@
 # PhotoCraft app icon
 
-A **nine-tailed kitsune with a brow diamond**: an engraving portrait, seated, looking back at the
-viewer, in the Crafting Apps' owl-template framing (full-bleed field, head and body filling the
-tile, tails running off the edges).
+A picture: frame, mountains and sun, drawn as a simple line glyph in the Arthavan Projects house style.
+Every app shares the same tile shape and glyph style, so the family reads as one set; each app has
+its own muted tint (hue 204°), and the glyph tells them apart.
 
 ## Palette
 
-Exactly three colours:
+The house style's dark tile and light accent, tinted to this app's hue:
 
 | Colour | Hex | Used for |
 |---|---|---|
-| Ink | `#0b0b0c` | line work and contours |
-| Paper | `#efe9dc` | the figure |
-| PhotoCraft blue (app colour) | `#2f7bf5` | the full-bleed field |
+| Tile | `#233c4d` → `#0a131a` | Vertical gradient filling the rounded square |
+| Hairline | white at 14% | Inner edge of the tile |
+| Accent | `#98c4e1` | The glyph's strokes |
+| Accent bright | `#c2e0f4` | Highlights in the glyph |
+| Accent low | `#39637f` | Soft fills behind the glyph |
 
 ## Geometry
 
-A 512-unit tile (`viewBox="0 0 512 512"`), rounded square with `rx=112`, no border. The macOS
-renders pad it onto Apple's 824/1024 icon grid; the Windows and Linux renders crop 22 units off
-each side so the figure reads at 16–48 px.
+A 512 × 512 viewBox, clipped to a rounded square with `rx=112`; glyph strokes are 30 units with
+round caps, so they stay legible at 16-32 px. Windows and Linux use the full tile. macOS files
+sit on Apple's grid (an 824/1024 body with a transparent margin, made by widening the viewBox).
 
-## Provenance
+## Provenance and licence
 
-The upstream owner's original drawing (2880 px, engraving style, keyed to the palette),
-vectorised with craftrules `assets/logo-options/_tools/vectorize_tile.py`. The source PNG stays in
-craftrules at `assets/app-icons/photocraft/source.png`. License: see `LICENSE.txt`.
-
-## Files
-
-- `photocraft.svg`: canonical master (traced at 2048 px).
-- `photocraft-small.svg`: lighter trace (traced at 1024 px); also the hicolor scalable icon.
-- `photocraft-1024.png`: 1024 px render on the macOS grid.
-- `photocraft.icns`: macOS bundle icon (`CFBundleIconFile`).
-- `photocraft.ico`: Windows icon, 16–256 px, embedded in the `.exe` by `apps/photocraft/build.rs`.
-- `hicolor/<size>/apps/app.freedev.ainz.ks.PhotoCraft.png` (16–512) and `hicolor/scalable/...svg`:
-  Linux icon theme.
-
-The app also sets the window icon and Wayland app ID at runtime (`apps/photocraft/src/app_icon.rs`,
-`main.rs`). On Windows the taskbar shows the icon of the Start Menu shortcut that launches the
-exe, so the MSI's `<Icon Id>` keeps the `.exe` extension (ICE50); `app_icon.rs` documents the
-details and tests the `.ico` sizes and the WiX icon references.
-
-## Regenerate
-
-Replace `photocraft.svg` (and `photocraft-small.svg`), then run `packaging/icons.sh`. It needs
-`resvg`, plus `iconutil` on macOS; the `.ico` is packed by `cargo xtask ico`.
+Original work: written by hand as SVG for this project, no source image traced or copied.
+MIT OR Apache-2.0, like the code. `photocraft.svg` is the master; `packaging/icons.sh` renders every
+other file here from it.
