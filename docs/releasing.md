@@ -338,8 +338,8 @@ The keychain is deleted at the end of the job.
 
 ## Icons
 
-`assets/app-icon/photocraft.svg` is the canonical icon: the upstream owner's drawing of a
-nine-tailed kitsune, vectorised (MIT OR Apache-2.0, see `LICENSE.txt` there; palette and
+`assets/app-icon/photocraft.svg` is the canonical icon: a picture glyph in the Arthavan
+Projects house style, original SVG (MIT OR Apache-2.0, see `LICENSE.txt` there; palette and
 geometry in `README.md`). `packaging/icons.sh` regenerates the 1024 px PNG, the `.icns`, the `.ico` (packed by
 `cargo xtask ico`) and the hicolor PNGs from it. It needs `resvg`, plus `iconutil` on macOS.
 The outputs are committed, so packaging never needs those tools.
