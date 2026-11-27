@@ -1,6 +1,6 @@
 ---
 title: Install PhotoCraft
-description: Download PhotoCraft for Windows 10 or 11, macOS or Linux from GitHub, or install it with the Arthavan Projects launcher.
+description: Download PhotoCraft for Windows 10 or 11 from GitHub, or install it with the Arthavan Projects launcher.
 order: 10
 verified: 0.8.2
 ---
@@ -25,30 +25,9 @@ To run without installing, download `photocraft-<version>-windows-x64-portable.z
 
 The installers and executables are code-signed.
 
-## macOS
+## The web
 
-1. Download `photocraft-<version>-macos-universal.dmg`. It works on Apple silicon and Intel Macs, and is signed and notarized by Apple.
-2. Open it and drag PhotoCraft to Applications.
-
-## Linux
-
-Pick one file from the release. Use `x86_64` for Intel and AMD, or `aarch64` for Arm.
-
-| Format              | File                                         | Notes                                                                              |
-|---------------------|----------------------------------------------|------------------------------------------------------------------------------------|
-| AppImage            | `photocraft-<version>-linux-x86_64.AppImage` | Runs anywhere and needs no install.                                                |
-| Debian and Ubuntu   | `photocraft-<version>-linux-x86_64.deb`      |                                                                                    |
-| Fedora and openSUSE | `photocraft-<version>-linux-x86_64.rpm`      |                                                                                    |
-| Flatpak             | `photocraft-<version>-linux-x86_64.flatpak`  | Run `flatpak install --user <file>`, then `flatpak run app.freedev.ainz.ks.PhotoCraft`. |
-| Tarball             | `photocraft-<version>-linux-x86_64.tar.gz`   | Unpack it anywhere.                                                                |
-
-The first time you run the AppImage, it adds its icon and menu entry under `~/.local/share`. Set `PHOTOCRAFT_NO_DESKTOP_INTEGRATION=1` to skip that. For RISC-V, take the `riscv64` file: `photocraft-<version>-linux-riscv64.tar.gz`, `.deb` or `.rpm`. The RISC-V tarball needs glibc 2.39 or newer.
-
-On a Wayland session, files dropped on the PhotoCraft window do not open yet. Use **File › Open…** instead, or copy the image in your file manager and paste it with Ctrl+V. To drag and drop, start PhotoCraft under XWayland with `WAYLAND_DISPLAY= photocraft`. PhotoCraft shows the right command for your install in a notice until you dismiss it.
-
-## FreeBSD and the web
-
-FreeBSD 14 (x86_64) has a tarball, `photocraft-<version>-freebsd-x86_64.tar.gz`, laid out like `/usr/local`. The web version comes as `photocraft-web-<version>.zip`, a static site you host on any web server. It runs in a modern browser.
+The web version comes as `photocraft-web-<version>.zip`, a static site you host on any web server. It runs in a modern browser.
 
 ## Check your download
 

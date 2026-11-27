@@ -459,7 +459,8 @@ pub(crate) fn decode(data: &[u8], max_samples: usize) -> Result<(Frame, Vec<u16>
             continue;
         }
         for x in 0..f.width {
-            for c in 0..nc {
+            // One Huffman table per component: the SOS parser builds exactly `nc` of them.
+            for (c, table) in p.tables.iter().enumerate() {
                 let i = x * nc + c;
                 let px = if x == 0 {
                     if first_line { initial } else { i32::from(prev[i]) }
@@ -481,7 +482,7 @@ pub(crate) fn decode(data: &[u8], max_samples: usize) -> Result<(Frame, Vec<u16>
                         }
                     }
                 };
-                let d = bits.diff(&p.tables[c])?;
+                let d = bits.diff(table)?;
                 cur[i] = (px + d) as u16;
             }
         }
